@@ -16,8 +16,7 @@ app.use(
   cors({ origin: ["localhost:3000", "https://propzi-website-v1.vercel.app/"] })
 );
 
-
-const sendEmail = async (email, recipientEmail) => {
+const sendEmail = async (email, recipientEmail, body, subject) => {
   const transporter = nodeMailer.createTransport({
     service: "gmail",
     auth: {
@@ -27,10 +26,10 @@ const sendEmail = async (email, recipientEmail) => {
   });
 
   const mailOptions = {
-    from: email,
-    to: recipientEmail,
-    subject: "Propzi Listing From",
-    text: "That was easy!",
+    from: "patrick@sparkspur.com",
+    to: email,
+    subject,
+    html: body,
   };
 
   try {
@@ -45,7 +44,7 @@ const sendEmail = async (email, recipientEmail) => {
 };
 
 app.post("/share-listing", async (req, res) => {
-  const { recipientEmail, email, message } = req.body;
+  const { recipientEmail, email, message, sharedLink } = req.body;
   if (!recipientEmail || !email) {
     return res
       .status(400)
@@ -57,9 +56,88 @@ app.post("/share-listing", async (req, res) => {
   if (!validateEmail(email)) {
     return res.status(400).send({ error: "Enter a valid email" });
   }
+  if (!sharedLink) {
+    return res.status(400).send({ error: "Shared Link is required" });
+  }
+  const subject = `SHARED PROPZI LISTING`;
+  const templateBody = `
+        <b>${email}</b> Has sent you a link to a property you would be interest in
+        click the link below to view it.
+
+        <a href="${sharedLink}">View Property</a>
+    `;
+  try {
+    const response = await sendEmail(
+      email,
+      recipientEmail,
+      templateBody,
+      subject
+    );
+    return res.status(200).send({ message: response.message });
+  } catch (error) {
+    res.status(500).send({ error: error.message, code: error.code });
+  }
+});
+
+// app.post("/request-tour", async (req, res) => {
+//   const { recipientEmail, email, message, sharedLink } = req.body;
+//   if (!recipientEmail || !email) {
+//     return res
+//       .status(400)
+//       .send({ error: "Your email and Recipient Email is required" });
+//   }
+//   if (!validateEmail(recipientEmail)) {
+//     return res.status(400).send({ error: "Enter a valid email" });
+//   }
+//   if (!validateEmail(email)) {
+//     return res.status(400).send({ error: "Enter a valid email" });
+//   }
+//   if (!sharedLink) {
+//     return res.status(400).send({ error: "Shared Link is required" });
+//   }
+//   const templateBody = `
+//         <b>${email}</b> Has sent you a link to a property you would be interest in
+//         click the link below to view it.
+
+//         <a href="${sharedLink}">View Property</a>
+//     `;
+//   try {
+//     const response = await sendEmail(email, recipientEmail, templateBody);
+//     return res.status(200).send({ message: response.message });
+//   } catch (error) {
+//     res.status(500).send({ error: error.message, code: error.code });
+//   }
+// });
+
+app.post("/contact-agent", async (req, res) => {
+  const { email, message, name, phone } = req.body;
+  if (!email || email === "") {
+    return res.status(400).send({ error: "email is required" });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).send({ error: "Enter a valid email" });
+  }
+  if (!message || message === "") {
+    return res.status(400).send({ error: "Message is required" });
+  }
+  if (!name || name === "") {
+    return res.status(400).send({ error: "Name is required" });
+  }
+  if (!phone || phone === "") {
+    return res.status(400).send({ error: "Phone is required" });
+  }
+
+  const SUBJECT = "GOOD NEWS: YOU HAVE A NEW LEAD";
 
   try {
-    const response = await sendEmail(email, recipientEmail);
+    const response = await sendEmail(
+      email,
+      "patrick@sparkspur.com",
+      message,
+      SUBJECT
+    );
+
     return res.status(200).send({ message: response.message });
   } catch (error) {
     res.status(500).send({ error: error.message, code: error.code });
