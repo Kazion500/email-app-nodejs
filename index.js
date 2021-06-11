@@ -16,7 +16,7 @@ app.use(
   cors({ origin: ["localhost:3000", "https://propzi-website-v1.vercel.app/"] })
 );
 
-const sendEmail = async (email, recipientEmail, body, subject) => {
+const sendEmail = async (email, body, subject) => {
   const transporter = nodeMailer.createTransport({
     service: "gmail",
     auth: {
@@ -26,7 +26,7 @@ const sendEmail = async (email, recipientEmail, body, subject) => {
   });
 
   const mailOptions = {
-    from: "patrick@sparkspur.com",
+    from: "propzi.com <info@sparkspur.com> ",
     to: email,
     subject,
     html: body,
@@ -60,19 +60,19 @@ app.post("/share-listing", async (req, res) => {
     return res.status(400).send({ error: "Shared Link is required" });
   }
   const subject = `SHARED PROPZI LISTING`;
-  const templateBody = `
-        <b>${email}</b> Has sent you a link to a property you would be interest in
-        click the link below to view it.
-
+  let templateBody = `
+        <p>Hello!! ${recipientEmail}</p>
+        <p style='width:400px'>
+            <b>${email}</b> Has sent you a link to a property you would be interest in
+            click the link below to view it.
+        </p>
         <a href="${sharedLink}">View Property</a>
     `;
+  if (message) {
+    templateBody += `<p style='width:400px'>${message}</p> `;
+  }
   try {
-    const response = await sendEmail(
-      email,
-      recipientEmail,
-      templateBody,
-      subject
-    );
+    const response = await sendEmail(email, templateBody, subject);
     return res.status(200).send({ message: response.message });
   } catch (error) {
     res.status(500).send({ error: error.message, code: error.code });
@@ -131,12 +131,7 @@ app.post("/contact-agent", async (req, res) => {
   const SUBJECT = "GOOD NEWS: YOU HAVE A NEW LEAD";
 
   try {
-    const response = await sendEmail(
-      email,
-      "patrick@sparkspur.com",
-      message,
-      SUBJECT
-    );
+    const response = await sendEmail(email, message, SUBJECT);
 
     return res.status(200).send({ message: response.message });
   } catch (error) {
