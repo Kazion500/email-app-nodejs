@@ -4,7 +4,7 @@ const admin = require("firebase-admin");
 const express = require("express");
 const nodeMailer = require("nodemailer");
 const cors = require("cors");
-const { validateEmail } = require("./helper");
+const { validateShareInput, validateContactInput } = require("./helper");
 
 const app = express();
 
@@ -45,20 +45,16 @@ const sendEmail = async (email, body, subject) => {
 
 app.post("/share-listing", async (req, res) => {
   const { recipientEmail, email, message, sharedLink } = req.body;
-  if (!recipientEmail || !email) {
-    return res
-      .status(400)
-      .send({ error: "Your email and Recipient Email is required" });
+
+  const error = validateShareInput({
+    email,
+    recipientEmail,
+  });
+
+  if (Object.keys(error.errors).length) {
+    return res.status(400).send(error);
   }
-  if (!validateEmail(recipientEmail)) {
-    return res.status(400).send({ error: "Enter a valid email" });
-  }
-  if (!validateEmail(email)) {
-    return res.status(400).send({ error: "Enter a valid email" });
-  }
-  if (!sharedLink) {
-    return res.status(400).send({ error: "Shared Link is required" });
-  }
+
   const subject = `SHARED PROPZI LISTING`;
   let templateBody = `
         <p>Hello!! ${recipientEmail}</p>
@@ -73,69 +69,28 @@ app.post("/share-listing", async (req, res) => {
   }
   try {
     const response = await sendEmail(email, templateBody, subject);
-    return res.status(200).send({ message: response.message });
+
+    return res.status(200).send({ message: response.message, success: true });
   } catch (error) {
-    res.status(500).send({ error: error.message, code: error.code });
+    res.status(500).send({ error: error.message, success: false });
   }
 });
 
-// app.post("/request-tour", async (req, res) => {
-//   const { recipientEmail, email, message, sharedLink } = req.body;
-//   if (!recipientEmail || !email) {
-//     return res
-//       .status(400)
-//       .send({ error: "Your email and Recipient Email is required" });
-//   }
-//   if (!validateEmail(recipientEmail)) {
-//     return res.status(400).send({ error: "Enter a valid email" });
-//   }
-//   if (!validateEmail(email)) {
-//     return res.status(400).send({ error: "Enter a valid email" });
-//   }
-//   if (!sharedLink) {
-//     return res.status(400).send({ error: "Shared Link is required" });
-//   }
-//   const templateBody = `
-//         <b>${email}</b> Has sent you a link to a property you would be interest in
-//         click the link below to view it.
-
-//         <a href="${sharedLink}">View Property</a>
-//     `;
-//   try {
-//     const response = await sendEmail(email, recipientEmail, templateBody);
-//     return res.status(200).send({ message: response.message });
-//   } catch (error) {
-//     res.status(500).send({ error: error.message, code: error.code });
-//   }
-// });
-
 app.post("/contact-agent", async (req, res) => {
   const { email, message, name, phone } = req.body;
-  if (!email || email === "") {
-    return res.status(400).send({ error: "email is required" });
-  }
+  const error = validateContactInput({ email, message, name, phone });
 
-  if (!validateEmail(email)) {
-    return res.status(400).send({ error: "Enter a valid email" });
+  if (Object.keys(error.errors).length) {
+    return res.status(400).send(error);
   }
-  if (!message || message === "") {
-    return res.status(400).send({ error: "Message is required" });
-  }
-  if (!name || name === "") {
-    return res.status(400).send({ error: "Name is required" });
-  }
-  if (!phone || phone === "") {
-    return res.status(400).send({ error: "Phone is required" });
-  }
-
-  const SUBJECT = "GOOD NEWS: YOU HAVE A NEW LEAD";
 
   try {
+    const SUBJECT = "GOOD NEWS: YOU HAVE A NEW LEAD";
     const response = await sendEmail(email, message, SUBJECT);
 
-    return res.status(200).send({ message: response.message });
+    return res.status(200).send({ message: response.message, success: true });
   } catch (error) {
-    res.status(500).send({ error: error.message, code: error.code });
+    res.status(500).send({ error: error.message, success: false });
   }
 });
 
