@@ -26,7 +26,7 @@ const sendEmail = async (email, body, subject) => {
   });
 
   const mailOptions = {
-    from: "propzi.com <info@sparkspur.com> ",
+    from: "propzi.com <patrick@sparknspur.com> ",
     to: email,
     subject,
     html: body,
