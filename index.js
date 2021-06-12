@@ -61,8 +61,8 @@ app.post("/share-listing", async (req, res) => {
   let templateBody = `
         <p>Hello!! ${recipientEmail}</p>
         <p style='width:400px'>
-            <b>${email}</b> Has sent you a link to a property you would be interest in
-            click the link below to view it.
+            <b>${email}</b> Has shared a link to a property you would be interested in
+            click the link below to check it out!!.
         </p>
         <a href="${sharedLink}">View Property</a>
     `;
