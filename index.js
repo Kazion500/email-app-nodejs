@@ -13,7 +13,9 @@ admin.initializeApp();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
-  cors({ origin: ["localhost:3000", "https://propzi-website-v1.vercel.app/"] })
+  cors({
+    origin: ["http://localhost:3000", "https://propzi-website-v1.vercel.app/"],
+  })
 );
 
 const sendEmail = async (email, body, subject) => {
