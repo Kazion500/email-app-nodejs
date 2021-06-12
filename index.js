@@ -70,7 +70,7 @@ app.post("/share-listing", async (req, res) => {
     templateBody += `<p style='width:400px'>${message}</p> `;
   }
   try {
-    const response = await sendEmail(email, templateBody, subject);
+    const response = await sendEmail(recipientEmail, templateBody, subject);
 
     return res.status(200).send({ message: response.message, success: true });
   } catch (error) {
