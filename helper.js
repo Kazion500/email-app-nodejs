@@ -3,10 +3,10 @@ const re =
 let error = {};
 module.exports.validateShareInput = (fields) => {
   if (!fields.email || fields.email === "") {
-    error["email"] = "email is required";
+    error["email"] = "E-mail is required";
   }
   if (!fields.recipientEmail || fields.recipientEmail === "") {
-    error["recipientEmail"] = "email is required";
+    error["recipientEmail"] = "Recipient E-mail is required";
   }
   if (fields.email) {
     if (!re.test(String(fields.email).toLowerCase())) {
@@ -24,7 +24,7 @@ module.exports.validateShareInput = (fields) => {
 
 module.exports.validateContactInput = (fields) => {
   if (!fields.email || fields.email === "") {
-    error["email"] = "email is required";
+    error["email"] = "E-mail is required";
   }
 
   if (fields.email) {

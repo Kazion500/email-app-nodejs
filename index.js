@@ -85,6 +85,7 @@ app.post("/contact-agent", async (req, res) => {
   if (Object.keys(error.errors).length) {
     return res.status(400).send(error);
   }
+  console.log(error);
 
   try {
     const SUBJECT = "GOOD NEWS: YOU HAVE A NEW LEAD";
