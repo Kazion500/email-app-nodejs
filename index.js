@@ -37,7 +37,7 @@ const sendEmail = async (email, body, subject) => {
   try {
     const info = await transporter.sendMail(mailOptions);
     return {
-      message: "Success!!",
+      message: "You Have Successfully Shared The Link!!",
       info,
     };
   } catch (error) {
