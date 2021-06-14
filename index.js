@@ -4,7 +4,11 @@ const admin = require("firebase-admin");
 const express = require("express");
 const nodeMailer = require("nodemailer");
 const cors = require("cors");
-const { validateShareInput, validateContactInput } = require("./helper");
+const {
+  validateShareInput,
+  validateContactInput,
+  validateRequestTourInput,
+} = require("./helper");
 
 const app = express();
 
@@ -18,7 +22,7 @@ app.use(
   })
 );
 
-const sendEmail = async (email, body, subject) => {
+const sendEmail = async (email, body, subject, SUCCESS_MGS) => {
   const transporter = nodeMailer.createTransport({
     service: "gmail",
     auth: {
@@ -37,7 +41,7 @@ const sendEmail = async (email, body, subject) => {
   try {
     const info = await transporter.sendMail(mailOptions);
     return {
-      message: "You Have Successfully Shared The Link!!",
+      message: `You Have Successfully ${SUCCESS_MGS}`,
       info,
     };
   } catch (error) {
@@ -70,7 +74,12 @@ app.post("/share-listing", async (req, res) => {
     templateBody += `<p style='width:400px'>${message}</p> `;
   }
   try {
-    const response = await sendEmail(recipientEmail, templateBody, subject);
+    const response = await sendEmail(
+      recipientEmail,
+      templateBody,
+      subject,
+      "Shared The Link!!"
+    );
 
     return res.status(200).send({ message: response.message, success: true });
   } catch (error) {
@@ -89,7 +98,53 @@ app.post("/contact-agent", async (req, res) => {
 
   try {
     const SUBJECT = "GOOD NEWS: YOU HAVE A NEW LEAD";
-    const response = await sendEmail(email, message, SUBJECT);
+    const SUCCESS_MGS = "Sent Request";
+    const response = await sendEmail(email, message, SUBJECT, SUCCESS_MGS);
+
+    return res.status(200).send({ message: response.message, success: true });
+  } catch (error) {
+    res.status(500).send({ error: error.message, success: false });
+  }
+});
+
+app.post("/request-tour", async (req, res) => {
+  const { email, message, name, phone, time, date, method, mlsNumber } =
+    req.body;
+  const error = validateRequestTourInput({
+    email,
+    message,
+    name,
+    phone,
+    time,
+    date,
+    method,
+  });
+  console.log(error);
+  if (Object.keys(error.errors).length) {
+    return res.status(400).send(error);
+  }
+
+  try {
+    const SUBJECT = `REQUEST TOUR: CLIENT IS ASKING FOR A TOUR`;
+    const EMAIL_TEMPLATE = `
+      <p>Hello Varun</p>
+
+      <p>Good news from propzi, a client has requested for a tour for MLS ${String(
+        mlsNumber
+      ).toUpperCase()}.</p>
+
+      <p><strong>Date</strong> : ${date}</p>
+      <p><strong>Time</strong> : ${time} </p>
+      <strong>Additional Info</strong>
+      <p>${message}</p>
+    `;
+    const SUCCESS_MGS = "Sent Request";
+    const response = await sendEmail(
+      email,
+      EMAIL_TEMPLATE,
+      SUBJECT,
+      SUCCESS_MGS
+    );
 
     return res.status(200).send({ message: response.message, success: true });
   } catch (error) {
